@@ -134,23 +134,14 @@
         var b = new window.PalmServiceBridge();
         b.onservicecallback = function(payload) {
           var parsed = parse(payload);
-          if (!isObject(parsed)) return;
-          if (parsed.ticket) {
-            var b2 = new window.PalmServiceBridge();
-            b2.onservicecallback = function(p2) {
-              var r = parse(p2);
-              if (!isObject(r)) return;
-              if (r.completed === true && !r.aborted && !r.interrupted) {
-                written++;
-                if (written === files.length) onAllWritten();
-              } else if (r.aborted || r.interrupted || r.state === 'failed') {
-                failStep('payload download', file.name + ': ' + (r.errorText || 'failed'));
-              }
-            };
-            b2.call('luna://com.webos.service.downloadmanager/downloadStatusQuery',
-              JSON.stringify({ ticket: parsed.ticket, subscribe: true }));
-          } else if (parsed.returnValue === false) {
-            failStep('payload download', file.name + ': ' + (parsed.errorText || 'request failed'));
+          if (!isObject(parsed)) { failStep('payload download', file.name + ': invalid response'); return; }
+          if (parsed.returnValue === false) { failStep('payload download', file.name + ': ' + (parsed.errorText || 'failed')); return; }
+          if (parsed.completed === true && !parsed.aborted && !parsed.interrupted) {
+            written++;
+            setState('pending', 'downloaded ' + written + '/' + files.length + ' payload files...');
+            if (written === files.length) onAllWritten();
+          } else if (parsed.aborted || parsed.interrupted || parsed.state === 'failed') {
+            failStep('payload download', file.name + ': ' + (parsed.errorText || 'aborted'));
           }
         };
         b.call('luna://com.webos.service.downloadmanager/download',
@@ -158,7 +149,7 @@
             target: file.url,
             targetDir: targetDir,
             targetFilename: file.name,
-            subscribe: false
+            subscribe: true
           }));
       }
 
