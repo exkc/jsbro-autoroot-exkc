@@ -1,6 +1,6 @@
 # jsbro-exkc / jsbro-autoroot-exkc
 
-it is a hackly fork of jsbro thta let your jail browser by opening the page  in webos browser
+it is a hackly fork of jsbro that let you jb tv by opening the page in webos browser
 
 it work kind of like how rootmytv work btw
 
