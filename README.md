@@ -1,73 +1,10 @@
-# jsbro / jsbro-autoroot
+# jsbro-exkc / jsbro-autoroot-exkc
 
-Browser-assisted root exploit chain for LG webOS TVs.
+Readme is WiP
 
-**[Use it → raws0kil.github.io/jsbro-autoroot](https://raws0kil.github.io/jsbro-autoroot/)**
+Open https://萌.网站/misc/js-bro/ in TV's browser
 
-## How it works
+Click Root the TV
 
-1. Enter your TV's local IP in the web UI
-2. Accept the SSAP pairing prompt on the TV
-3. jsbro launches the `dangbei-overlay` app via SSAP, which downloads a root-persistence script and uses the `jsserver` service to execute it as root
-4. The script installs [Homebrew Channel](https://github.com/webosbrew/webos-homebrew-channel) and removes the Developer Mode app if present
-5. A dialog on the TV shows the result—on success, reboot to activate persistent root
 
-jsbro requires the `dangbei-overlay` app (present on most webOS 7+ firmwares). The tool checks for its existence automatically.
 
-## Prerequisites
-
-- LG webOS TV reachable on your LAN
-- Browser that supports WebSockets (Chrome recommended — self-signed cert acceptance required)
-
-## Supported webOS
-
-**WebOS 7.x up to WebOS 25**
-
-Requires the `dangbei-overlay` app, which is present on most webOS 7+ firmwares. The tool checks for this automatically.
-
-If you are unsure if it's applicable for you, it can be tested without risk.
-
-## Troubleshooting
-
-**Windows Launcher**
-If you have problems with connecting to the TV due to certificate error you can start chrome without certificate checks.
-Run this command within a PowerShell:
-
-```pwsh
-Start-Process "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" -ArgumentList @(
-  "--user-data-dir=$env:TEMP\chrome-jsbro-insecure",
-  "--no-first-run",
-  "--ignore-certificate-errors",
-  "--allow-running-insecure-content",
-  "--disable-web-security",
-  "--new-window",
-  "https://raws0kil.github.io/jsbro-autoroot"
-)
-```
-
-- **Nothing happens on TV after launch**: the `dangbei-overlay` app may not exist on your firmware. Check whether the service is present / other rooting options.
-- **Root setup failed**: check `/tmp/jsbro-root.log` on the TV.
-- **Rooting complete but no Homebrew Channel**: reboot the TV. Make sure **Quick Start+** is disabled (`Settings → General → Quick Start+`).
-- **IPK install error (errorCode -5)**: the TV's date/time is too far off. Correct it and retry.
-- **Certificate blocked / WSS fails instantly**: open `https://<TV-IP>:3001/` in your browser first and accept the self-signed certificate.
-
-If jsbro-autoroot doesn't support your TV, see the alternative exploits below.
-
-## Alternative exploits
-
-| Tool | Affected versions |
-|---|---|
-| [dangbro](https://github.com/azoffshowy/dangbro) | webOS 7.x – 25 (DVB regions) |
-| [dejavuln-autoroot](https://github.com/throwaway96/dejavuln-autoroot) | webOS 3.5 – 8 (many 5+ models patched) |
-| [faultmanager-autoroot](https://github.com/throwaway96/faultmanager-autoroot) | webOS 4.0 – 10.0 (most 5+ patched) |
-| [mvpd-autoroot](https://github.com/throwaway96/mvpd-autoroot) | webOS 1 – 3.4.2 |
-
-[CanI.RootMy.TV](https://cani.rootmy.tv/) can be used to determine which one is applicable for you.
-
-## Support
-
-For help rooting your TV, join the [OpenLGTV Discord](https://discord.gg/hXMHAgJC5R) and check #faq first. When asking for help, attach your `jsbro-root.log`.
-
-## Credits
-
-jsbro is based on [dangbro](https://github.com/azoffshowy/dangbro) by azoffshowy. Root persistence via [webosbrew/webos-homebrew-channel](https://github.com/webosbrew/webos-homebrew-channel). Browser SSAP websocket proxy approach inspired by [Informatic/webos-ssap-web](https://github.com/Informatic/webos-ssap-web).

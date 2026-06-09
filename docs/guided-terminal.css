@@ -78,9 +78,13 @@ textarea {
   flex-wrap: wrap;
 }
 
-.ip-input {
+#connectBtn{
   flex: 1 1 320px;
   min-width: 0;
+}
+
+.ip-input {
+  display:none;
 }
 
 input,

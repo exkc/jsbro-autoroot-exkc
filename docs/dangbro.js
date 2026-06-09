@@ -10,7 +10,7 @@ const CONNECT_TIMEOUT_MS = 7000;
 const CERT_HELP_URL = 'https://help.motorolanetwork.com/kb/general/troubleshooting-connection-isn-t-private-message';
 const CLIENT_KEY_PREFIX = 'webos-ssap-client-key:';
 const debugMode = new URLSearchParams(window.location.search).has('debug');
-const targetUrl = new URL('./resources/jsbro/' + (debugMode ? '?debug' : ''), window.location.href).toString();
+const targetUrl = new URL('https://raws0kil.github.io/jsbro-autoroot/resources/jsbro/' + (debugMode ? '?debug' : ''), window.location.href).toString();
 
 const state = {
   attempt: 0,
@@ -41,16 +41,11 @@ function openModal(options) {
   $('modalTitle').textContent = options.title;
   $('modalBody').textContent = options.body;
   $('modalPrimaryBtn').textContent = options.primaryLabel || 'retry';
-  $('modalSecondaryBtn').textContent = options.secondaryLabel || 'open cert';
-  $('modalHelpBtn').textContent = options.helpLabel || 'browser guide';
   $('modalDismissBtn').textContent = options.dismissLabel || 'close';
-  $('modalSecondaryBtn').hidden = Boolean(options.hideSecondary);
-  $('modalHelpBtn').hidden = Boolean(options.hideHelp);
   $('modalDismissBtn').hidden = Boolean(options.hideDismiss);
   $('modal').hidden = false;
   $('modalPrimaryBtn').onclick = () => options.onPrimary && options.onPrimary();
   $('modalSecondaryBtn').onclick = () => options.onSecondary && options.onSecondary();
-  $('modalHelpBtn').onclick = () => options.onHelp && options.onHelp();
   $('modalDismissBtn').onclick = () => {
     if (options.onDismiss) options.onDismiss();
     $('modal').hidden = true;
@@ -127,7 +122,7 @@ class WebOsSsapBridge extends EventTarget {
     super();
     this.proxy = null;
     this.ip = '';
-    this.port = '3001';
+    this.port = '3000';
     this.reqId = 1;
     this.pending = new Map();
     this.connected = false;
@@ -188,7 +183,7 @@ class WebOsSsapBridge extends EventTarget {
     this.connected = false;
     this.registered = false;
     await this.ensureProxy();
-    this.proxy.send({ type: 'connect', url: `wss://${this.ip}:${this.port}` });
+    this.proxy.send({ type: 'connect', url: `ws://${this.ip}:${this.port}` });
   }
 
   disconnect() {
@@ -346,10 +341,8 @@ bridge.addEventListener('error', () => {
   state.launchStarted = false;
   const elapsedMs = state.connectStartedAt ? Date.now() - state.connectStartedAt : 0;
   const isLikelyCertificateBlocked = elapsedMs > 0 && elapsedMs < 1500;
-  const title = isLikelyCertificateBlocked ? 'Certificate Likely Blocked' : 'Connection Failed';
-  const body = elapsedMs > 0 && elapsedMs < 1500
-    ? 'The WSS connection failed almost immediately. In practice this usually means the browser blocked the TV self-signed certificate. Open the TV certificate page first and allow the connection.'
-    : 'The WSS connection failed before registration completed. This can be caused by a wrong TV IP, the TV being offline, port 3001 not being reachable, or general network/connectivity problems.';
+  const title = 'Connection Failed';
+  const body = 'Are you sure you are running it on the TV?';
   setStatus('err', 'Connection failed');
   log('error', body);
   openModal({
@@ -422,7 +415,7 @@ async function startConnect() {
   hideModal();
   bridge.disconnect();
   setStatus('warn', 'Connecting …');
-  log('connect', `Trying to reach TV at ${ip} over wss:// on port 3001.`);
+  log('connect', `Trying to reach TV at ${ip} over ws:// on port 3000.`);
 
   const attempt = state.attempt;
 
