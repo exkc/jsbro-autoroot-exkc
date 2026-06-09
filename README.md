@@ -1,10 +1,11 @@
 # jsbro-exkc / jsbro-autoroot-exkc
 
-Readme is WiP
+it is a hackly fork of jsbro thta let your jail browser by opening the page  in webos browser
 
-Open https://萌.网站/misc/js-bro/ in TV's browser
+it work kind of like how rootmytv work btw
 
-Click Root the TV
+i hosted it in https://萌.网站/misc/js-bro/ btw
+
 
 
 
